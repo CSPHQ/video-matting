@@ -1,5 +1,25 @@
 # Video matting
 
+## usage: for windows user
+
+Download option 1
+
+Download from Github release:
+
+https://github.com/CSPHQ/video-matting/releases/tag/win32
+
+Download option 2
+
+链接: https://pan.baidu.com/s/1C6vSGvXdebrx5x1WZFWxew 提取码: 112d 
+
+extract .zip then
+
+```bash
+video_matting_cli.exe input_video.mp4 output_video.mp4
+```
+
+## usage: for advance user
+
 model from [PeterL1n/RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting/)
 
 install
