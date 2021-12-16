@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 #############################################
 # File Name: setup.py
@@ -38,7 +38,7 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=INSTALL_REQUIRES,
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'video-matting = rvm.__main__:cmd',
         ],

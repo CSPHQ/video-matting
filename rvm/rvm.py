@@ -29,7 +29,7 @@ def create_model_for_provider(
         print('model provider', provider)
     assert provider in get_available_providers(), \
         f"provider {provider} not found, {get_available_providers()}"
-    
+
     # Few properties that might have an impact on performances (provided by MS)
     options = SessionOptions()
     options.intra_op_num_threads = int(os.environ.get('NUM_THREADS', NUM_THREADS))
@@ -62,6 +62,7 @@ def compute_border(fgr, pha, border):
     ipha = ((pha > 0.2) * 255).astype('uint8')
     return output_img_border, ipha
 
+
 @jit
 def compute_border_2(output_img_border, img_dilation_filter, green):
     return (output_img_border * img_dilation_filter) + (1 - img_dilation_filter) * green * 255
@@ -73,6 +74,7 @@ def compute_without_border(fgr, pha, green):
     output_img = np.clip(output_img, 0.0, 1.0)
     output_img = (output_img * 255.0)
     return output_img
+
 
 def write_frame(fgr, pha, border, green, use_border):
     if use_border:
@@ -102,7 +104,7 @@ def generate_result(cap, all_frames, sess, model_path, downsample):
         get_video(cap=cap),
         total=math.ceil(all_frames)
     )
-    rec = [ np.zeros([1, 1, 1, 1], dtype=np.float32) ] * 4  # Must match dtype of the model.
+    rec = [np.zeros([1, 1, 1, 1], dtype=np.float32)] * 4  # Must match dtype of the model.
     downsample_ratio = np.array([downsample], dtype=np.float32)  # dtype always FP32
     for src in pbar:
         batch_inputs = src
@@ -142,7 +144,7 @@ def convert(
     cap = cv2.VideoCapture(input_file)
     all_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = float(cap.get(cv2.CAP_PROP_FPS))
-    width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -163,4 +165,3 @@ def convert(
 
 if __name__ == '__main__':
     fire.Fire(convert)
-
