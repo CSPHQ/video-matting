@@ -14,7 +14,7 @@ from onnxruntime import (
 from .merge import combine_audio
 
 CURRENT_DIR = os.path.realpath(os.path.dirname(__file__))
-NUM_THREADS = min(16, os.cpu_count())
+NUM_THREADS = min(4, os.cpu_count())
 
 
 def create_model_for_provider(
