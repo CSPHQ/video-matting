@@ -5,3 +5,6 @@
 *.MOV
 /env
 .ipynb_checkpoints
+/build
+/dist
+*.egg-info

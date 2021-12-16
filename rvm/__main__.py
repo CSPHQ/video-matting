@@ -2,5 +2,9 @@ import fire
 from .rvm import convert
 
 
-if __name__ == '__main__':
+def cmd():
     fire.Fire(convert)
+
+    
+if __name__ == '__main__':
+    cmd()
