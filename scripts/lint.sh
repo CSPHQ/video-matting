@@ -1,1 +1,1 @@
-flake8 rvm
+flake8 video_matting

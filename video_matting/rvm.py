@@ -6,15 +6,20 @@ import fire
 from tqdm import tqdm
 import numpy as np
 import cv2
-from jax import jit
 from onnxruntime import (
     GraphOptimizationLevel, InferenceSession,
     SessionOptions, get_available_providers
 )
-from .merge import combine_audio
+from video_matting.merge import combine_audio
 
+USE_JIT = True
 CURRENT_DIR = os.path.realpath(os.path.dirname(__file__))
 NUM_THREADS = min(4, os.cpu_count())
+
+try:
+    from jax import jit
+except:  # noqa
+    USE_JIT = False
 
 
 def create_model_for_provider(
@@ -54,7 +59,6 @@ def get_video(cap):
             break
 
 
-@jit
 def compute_border(fgr, pha, border):
     output_img_border = fgr * pha + (1 - pha) * border
     output_img_border = np.clip(output_img_border, 0.0, 1.0)
@@ -63,17 +67,21 @@ def compute_border(fgr, pha, border):
     return output_img_border, ipha
 
 
-@jit
 def compute_border_2(output_img_border, img_dilation_filter, green):
     return (output_img_border * img_dilation_filter) + (1 - img_dilation_filter) * green * 255
 
 
-@jit
 def compute_without_border(fgr, pha, green):
     output_img = fgr * pha + (1 - pha) * green
     output_img = np.clip(output_img, 0.0, 1.0)
     output_img = (output_img * 255.0)
     return output_img
+
+
+if USE_JIT:
+    compute_border = jit(compute_border)
+    compute_border_2 = jit(compute_border_2)
+    compute_without_border = jit(compute_without_border)
 
 
 def write_frame(fgr, pha, border, green, use_border):
@@ -127,12 +135,18 @@ def generate_result(cap, all_frames, sess, model_path, downsample):
 def convert(
     input_file,
     output_file,
-    model_path=os.path.join(CURRENT_DIR, 'rvm_mobilenetv3_int8.onnx'),
+    model_path='rvm_mobilenetv3_fp32.onnx',
     downsample=0.5,
     green_color=[0, 255, 0],
     use_border=False,
     border_color=[255, 255, 255]
 ):
+
+    if os.path.exists(model_path):
+        pass
+    elif os.path.exists(os.path.join(CURRENT_DIR, model_path)):
+        model_path = os.path.join(CURRENT_DIR, model_path)
+
     assert os.path.exists(input_file), 'Input file not found'
     assert os.path.exists(model_path), 'Model not found'
 
@@ -149,17 +163,22 @@ def convert(
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
-    with tempfile.NamedTemporaryFile(suffix='.mp4') as f:
-        print(f'start convert video in temp file {f.name}')
-        out = cv2.VideoWriter(f.name, fourcc, fps, (width, height))
+    f = tempfile.NamedTemporaryFile(suffix='.mp4', delete=False)
+    print(f'start convert video in temp file {f.name}')
+    out = cv2.VideoWriter(f.name, fourcc, fps, (width, height))
 
-        for fgr, pha in generate_result(cap, all_frames, sess, model_path, downsample):
-            out.write(write_frame(fgr, pha, border, green, use_border))
+    for fgr, pha in generate_result(cap, all_frames, sess, model_path, downsample):
+        out.write(write_frame(fgr, pha, border, green, use_border))
 
-        out.release()
-        cap.release()
-        print(f'start combine converted video and audio from original video into {output_file}')
-        combine_audio(f.name, input_file, output_file)
+    out.release()
+    cap.release()
+    print(f'start combine converted video and audio from original video into {output_file}')
+    combine_audio(f.name, input_file, output_file)
+    if os.path.exists(f.name):
+        try:
+            os.remove(f.name)
+        except:  # noqa
+            pass
     print('DONE')
 
 

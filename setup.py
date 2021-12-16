@@ -22,7 +22,7 @@ if not ON_RTD:
 else:
     INSTALL_REQUIRES = []
 
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 
 setup(
     name='video-matting',
@@ -40,7 +40,7 @@ setup(
     install_requires=INSTALL_REQUIRES,
     entry_points={
         'console_scripts': [
-            'video-matting = rvm.__main__:cmd',
+            'video-matting = video_matting.video_matting_cli:cmd',
         ],
     },
 )
