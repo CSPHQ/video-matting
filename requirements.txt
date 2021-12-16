@@ -1,0 +1,7 @@
+tqdm
+jax
+jax[cpu]
+onnxruntime
+fire
+numpy
+opencv-python
