@@ -46,6 +46,23 @@ pip install https://storage.googleapis.com/jax-releases/mac/jaxlib-0.1.74-cp39-n
 pip install moviepy tqdm jax fire numpy opencv-python
 ```
 
+python==3.8
+
+```
+
+pip install https://test-files.pythonhosted.org/packages/25/9f/2d8eb8516957bd8555bf2a1736b63f74d46543ae0896bc8efc02cc3216e8/onnxruntime-1.9.0.dev174552-cp38-cp38-macosx_10_14_universal2.whl
+
+
+```
+
+other version:
+
+find whl by yourself
+
+https://test.pypi.org/simple/onnxruntime/
+
+https://storage.googleapis.com/jax-releases/jax_releases.html
+
 ## generate win exe
 
 from https://github.com/cdrx/docker-pyinstaller

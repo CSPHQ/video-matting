@@ -12,7 +12,7 @@ def combine_audio(vidname, audname, outname):
     my_clip = VideoFileClip(vidname)
     audio_background = AudioFileClip(audname)
     final_clip = my_clip.set_audio(audio_background)
-    final_clip.write_videofile(outname, fps=fps)
+    final_clip.write_videofile(outname, fps=fps, codec="libx264", audio_codec='aac')
 
 
 if __name__ == '__main__':
