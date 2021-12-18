@@ -40,19 +40,18 @@ video-matting input.mp4 output.mp4
 python==3.9
 
 ```
-pip install video-matting --no-deps
 pip install https://test-files.pythonhosted.org/packages/79/20/47672664090294646b621dacf8d4e5d43e085d0b8c2797677b08c3126534/onnxruntime-1.9.0.dev174552-cp39-cp39-macosx_10_14_universal2.whl
 pip install https://storage.googleapis.com/jax-releases/mac/jaxlib-0.1.74-cp39-none-macosx_11_0_arm64.whl
+pip install video-matting --no-deps
 pip install moviepy tqdm jax fire numpy opencv-python
 ```
 
 python==3.8
 
 ```
-
+pip install video-matting --no-deps
 pip install https://test-files.pythonhosted.org/packages/25/9f/2d8eb8516957bd8555bf2a1736b63f74d46543ae0896bc8efc02cc3216e8/onnxruntime-1.9.0.dev174552-cp38-cp38-macosx_10_14_universal2.whl
-
-
+pip install moviepy tqdm jax fire numpy opencv-python
 ```
 
 other version:
