@@ -5,7 +5,7 @@
 # File Name: setup.py
 # Author: qhduan
 # Mail: mail@qhduan.com
-# Created Time: 2020-12-16 09:00:00
+# Created Time: 2021-12-16 09:00:00
 #############################################
 
 import os
@@ -22,7 +22,7 @@ if not ON_RTD:
 else:
     INSTALL_REQUIRES = []
 
-VERSION = '0.0.6'
+VERSION = '0.0.7'
 
 setup(
     name='video-matting',
