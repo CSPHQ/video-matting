@@ -49,7 +49,8 @@ def create_model_for_provider(
     return session
 
 
-def get_video(cap):
+def get_video(input_file):
+    cap = cv2.VideoCapture(input_file)
     while True:
         if cap.grab():
             flag, frame = cap.retrieve()
@@ -61,6 +62,7 @@ def get_video(cap):
                 yield src
         else:
             break
+    cap.release()
 
 
 def compute_border(fgr, pha, border):
@@ -213,7 +215,7 @@ def m_get_video(input_file):
 
 def generate_result(input_file, all_frames, sess, model_path, downsample):
     pbar = tqdm(
-        m_get_video(input_file=input_file),
+        get_video(input_file=input_file),
         total=math.ceil(all_frames)
     )
     rec = [ np.zeros([1, 1, 1, 1], dtype=np.float32) ] * 4  # Must match dtype of the model.
