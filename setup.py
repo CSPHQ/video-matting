@@ -22,7 +22,7 @@ if not ON_RTD:
 else:
     INSTALL_REQUIRES = []
 
-VERSION = '0.0.8'
+VERSION = '0.0.9'
 
 setup(
     name='video-matting',
@@ -31,7 +31,7 @@ setup(
     description='video tool',
     long_description='video tool',
     license='GPLv3',
-    url='https://github.com/deepdialog/rvm',
+    url='https://github.com/CSPHQ/video-matting',
     author='qhduan',
     author_email='mail@qhduan.com',
     packages=find_packages(),
