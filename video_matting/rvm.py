@@ -93,7 +93,7 @@ def generate_result(input_file, all_frames, sess, model_path, downsample):
         get_video(input_file=input_file),
         total=math.ceil(all_frames)
     )
-    rec = [ np.zeros([1, 1, 1, 1], dtype=np.float32) ] * 4  # Must match dtype of the model.
+    rec = [np.zeros([1, 1, 1, 1], dtype=np.float32)] * 4  # Must match dtype of the model.
     downsample_ratio = np.array([downsample], dtype=np.float32)  # dtype always FP32
     for src in pbar:
         batch_inputs = src
@@ -140,7 +140,7 @@ def convert(
     cap = cv2.VideoCapture(input_file)
     all_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = float(cap.get(cv2.CAP_PROP_FPS))
-    width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
 

@@ -22,7 +22,7 @@ if not ON_RTD:
 else:
     INSTALL_REQUIRES = []
 
-VERSION = '0.0.9'
+VERSION = '0.0.10'
 
 setup(
     name='video-matting',
