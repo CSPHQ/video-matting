@@ -9,12 +9,14 @@ from video_matting.rvm import compute_without_border
 CURRENT_DIR = os.path.realpath(os.path.dirname(__file__))
 
 
-def main(
+def camera(
     model_path='rvm_mobilenetv3_fp32.onnx',
     downsample=0.5,
     green_color=[0, 255, 0],
     num_threads=None,
-    camera=0
+    camera=0,
+    width=480,
+    height=270,
 ):
 
     if os.path.exists(model_path):
@@ -32,10 +34,10 @@ def main(
 
     while(True):
         _, frame = vid.read()
-        frame = cv2.resize(frame, (480, 270))
+        frame = cv2.resize(frame, (width, height))
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        src = np.expand_dims(np.transpose(frame, (2, 0, 1)), 0).astype(np.float32) / 255.0
 
+        src = np.expand_dims(np.transpose(frame, (2, 0, 1)), 0).astype(np.float32) / 255.0
         batch_inputs = src
         if 'fp16' in model_path:
             batch_inputs = batch_inputs.astype('float16')
@@ -53,7 +55,9 @@ def main(
         fgr = np.transpose(fgr, [0, 2, 3, 1])
         pha = np.transpose(pha, [0, 2, 3, 1])
         output_img = np.array(compute_without_border(fgr, pha, green)).astype('uint8')
-        oi = cv2.cvtColor(output_img[0], cv2.COLOR_RGB2BGR)
+        oi = output_img[0]
+
+        oi = cv2.cvtColor(oi, cv2.COLOR_RGB2BGR)
         cv2.imshow('camera', oi)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -64,4 +68,5 @@ def main(
 
 
 if __name__ == '__main__':
-    main()
+    from fire import Fire
+    Fire(camera)
