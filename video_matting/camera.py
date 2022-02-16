@@ -15,9 +15,20 @@ def camera(
     green_color=[0, 255, 0],
     num_threads=None,
     camera=0,
-    width=480,
-    height=270,
+    width=320,
+    height=180,
 ):
+    """
+    Run a camera window to show video matting, useful when you use OBS to live stream.
+    Args:
+        model_path: path to the model
+        downsample: downsample factor, default is 0.5, slower is faster and lower quality
+        green_color: color of the background, default green: 0, 255, 0
+        num_threads: number of threads to use for inference, default is None, will use 4 threads
+        camera: camera index, default is 0
+        width: width of the image, default is 320
+        height: height of the image, default is 180
+    """
 
     if os.path.exists(model_path):
         pass
@@ -67,6 +78,10 @@ def camera(
     cv2.destroyAllWindows()
 
 
-if __name__ == '__main__':
+def cmd():
     from fire import Fire
     Fire(camera)
+
+
+if __name__ == '__main__':
+    cmd()

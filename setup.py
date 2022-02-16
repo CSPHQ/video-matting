@@ -22,7 +22,7 @@ if not ON_RTD:
 else:
     INSTALL_REQUIRES = []
 
-VERSION = '0.0.11'
+VERSION = '1.0.1'
 
 setup(
     name='video-matting',
@@ -41,7 +41,7 @@ setup(
     entry_points={
         'console_scripts': [
             'video-matting = video_matting.video_matting_cli:cmd',
-            'camera-matting = video_matting.camera:camera',
+            'camera-matting = video_matting.camera:cmd',
         ],
     },
 )

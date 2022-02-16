@@ -38,18 +38,6 @@ def get_video(input_file):
     cap.release()
 
 
-def compute_border(fgr, pha, border):
-    output_img_border = fgr * pha + (1 - pha) * border
-    output_img_border = np.clip(output_img_border, 0.0, 1.0)
-    output_img_border = (output_img_border * 255.0).astype('uint8')
-    ipha = ((pha > 0.2) * 255).astype('uint8')
-    return output_img_border, ipha
-
-
-def compute_border_2(output_img_border, img_dilation_filter, green):
-    return (output_img_border * img_dilation_filter) + (1 - img_dilation_filter) * green * 255
-
-
 def compute_without_border(fgr, pha, green):
     output_img = fgr * pha + (1 - pha) * green
     output_img = np.clip(output_img, 0.0, 1.0)
@@ -58,32 +46,13 @@ def compute_without_border(fgr, pha, green):
 
 
 if USE_JIT:
-    compute_border = jit(compute_border)
-    compute_border_2 = jit(compute_border_2)
     compute_without_border = jit(compute_without_border)
 
 
-def write_frame(fgr, pha, border, green, use_border):
+def write_frame(fgr, pha, green):
     fgr = np.transpose(fgr, [0, 2, 3, 1])
     pha = np.transpose(pha, [0, 2, 3, 1])
-    if use_border:
-        output_img_border, ipha = compute_border(fgr, pha, border)
-        output_img_border = np.array(output_img_border)
-        ipha = np.array(ipha)
-
-        dilation = cv2.dilate(np.array(ipha[0]), np.ones((5, 5)), iterations=1)
-        img_dilation = np.expand_dims(np.expand_dims(dilation, 0), -1)
-        img_dilation_filter = img_dilation.astype('float32') / 255.0
-
-        output_img_border = np.array(
-            compute_border_2(
-                output_img_border, img_dilation_filter, green
-            )
-        ).astype('uint8')
-
-        output_img = output_img_border
-    else:
-        output_img = np.array(compute_without_border(fgr, pha, green)).astype('uint8')
+    output_img = np.array(compute_without_border(fgr, pha, green)).astype('uint8')
     oi = cv2.cvtColor(output_img[0], cv2.COLOR_RGB2BGR)
     return oi
 
@@ -118,11 +87,20 @@ def convert(
     model_path='rvm_mobilenetv3_fp32.onnx',
     downsample=0.5,
     green_color=[0, 255, 0],
-    use_border=False,
-    border_color=[255, 255, 255],
     num_threads=None,
     animegan=None
 ):
+    """
+    Convert a video to a video with matting.
+    Args:
+        input_file: input video file path.
+        output_file: output video file path.
+        model_path: model path.
+        downsample: downsample ratio, lower is faster but less quality.
+        green_color: green color, default is green (0, 255, 0).
+        num_threads: number of threads to use, default is 4.
+        animegan: animegan model path.
+    """
 
     if os.path.exists(model_path):
         pass
@@ -135,7 +113,6 @@ def convert(
     sess = create_model_for_provider(model_path, num_threads=num_threads)
 
     green = np.array(green_color).reshape([1, 1, 3]) / 255.
-    border = np.array(border_color).reshape([1, 1, 3]) / 255.
 
     cap = cv2.VideoCapture(input_file)
     all_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -153,7 +130,7 @@ def convert(
     for fgr, pha in generate_result(input_file, all_frames, sess, model_path, downsample):
         if animegan is not None:
             fgr = agan(fgr)
-        out.write(write_frame(fgr, pha, border, green, use_border))
+        out.write(write_frame(fgr, pha, green))
     out.release()
 
     print(f'start combine converted video and audio from original video into {output_file}')

@@ -18,6 +18,85 @@ extract .zip then
 video_matting_cli.exe input_video.mp4 output_video.mp4
 ```
 
+## help of video-matting
+
+```
+$ video-matting --help
+
+NAME
+    video-matting - Convert a video to a video with matting.
+
+SYNOPSIS
+    video-matting INPUT_FILE OUTPUT_FILE <flags>
+
+DESCRIPTION
+    Convert a video to a video with matting.
+
+POSITIONAL ARGUMENTS
+    INPUT_FILE
+        input video file path.
+    OUTPUT_FILE
+        output video file path.
+
+FLAGS
+    --model_path=MODEL_PATH
+        Default: 'rvm_mobilenetv3_fp32.onnx'
+        model path.
+    --downsample=DOWNSAMPLE
+        Default: 0.5
+        downsample ratio, lower is faster but less quality.
+    --green_color=GREEN_COLOR
+        Default: [0, 255, 0]
+        green color, default is green (0, 255, 0).
+    --num_threads=NUM_THREADS
+        Type: Optional[]
+        Default: None
+        number of threads to use, default is 4.
+    --animegan=ANIMEGAN
+        Type: Optional[]
+        Default: None
+        animegan model path.
+```
+
+## help of camera
+
+```
+$ camera-matting --help
+
+NAME
+    camera-matting - Run a camera window to show video matting, useful when you use OBS to live stream.
+
+SYNOPSIS
+    camera-matting <flags>
+
+DESCRIPTION
+    Run a camera window to show video matting, useful when you use OBS to live stream.
+
+FLAGS
+    --model_path=MODEL_PATH
+        Default: 'rvm_mobilenetv3_fp32.onnx'
+        path to the model
+    --downsample=DOWNSAMPLE
+        Default: 0.5
+        downsample factor, default is 0.5, slower is faster and lower quality
+    --green_color=GREEN_COLOR
+        Default: [0, 255, 0]
+        color of the background, default green: 0, 255, 0
+    --num_threads=NUM_THREADS
+        Type: Optional[]
+        Default: None
+        number of threads to use for inference, default is None, will use 4 threads
+    --camera=CAMERA
+        Default: 0
+        camera index, default is 0
+    --width=WIDTH
+        Default: 320
+        width of the image, default is 320
+    --height=HEIGHT
+        Default: 180
+        height of the image, default is 180
+```
+
 ## usage: for advance user
 
 model from [PeterL1n/RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting/)
