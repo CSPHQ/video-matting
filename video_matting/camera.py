@@ -11,15 +11,19 @@ from video_matting.rvm import compute_without_border
 CURRENT_DIR = os.path.realpath(os.path.dirname(__file__))
 
 
-def camera_proc(queue, done_queue, camera=0):
+def compute_frame(frame, size):
+    frame = cv2.resize(frame, size)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    src = np.expand_dims(np.transpose(frame, (2, 0, 1)), 0).astype(np.float32) / 255.0
+    return src
+
+
+def camera_proc(queue, camera, width, height):
     vid = cv2.VideoCapture(camera)
     while(True):
         ok, frame = vid.read()
         if ok:
-            queue.put(frame)
-        if not done_queue.empty():
-            vid.release()
-            break
+            queue.put(compute_frame(frame, (width, height)))
 
 
 def camera(
@@ -58,27 +62,22 @@ def camera(
     downsample_ratio = np.array([downsample], dtype=np.float32)  # dtype always FP32
 
     queue = Queue(1)
-    done_queue = Queue(1)
-    proc = Process(target=camera_proc, args=(queue, done_queue, camera))
+    proc = Process(target=camera_proc, args=(queue, camera, width, height))
     proc.start()
 
     fps = []
 
+    if 'fp16' in model_path:
+        rec = [x.astype('float16') for x in rec]
+    elif 'fp32' in model_path:
+        rec = [x.astype('float32') for x in rec]
+
     while(True):
+        batch_inputs = queue.get()
 
-        frame = queue.get()
-        
-        frame = cv2.resize(frame, (width, height))
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        src = np.expand_dims(np.transpose(frame, (2, 0, 1)), 0).astype(np.float32) / 255.0
-        batch_inputs = src
         if 'fp16' in model_path:
             batch_inputs = batch_inputs.astype('float16')
             rec = [x.astype('float16') for x in rec]
-        elif 'fp32' in model_path:
-            batch_inputs = batch_inputs.astype('float32')
-            rec = [x.astype('float32') for x in rec]
 
         fgr, pha, *rec = sess.run([], {
             'src': batch_inputs,
@@ -106,7 +105,7 @@ def camera(
             break
 
     # vid.release()
-    done_queue.put(True)
+    proc.terminate()
     cv2.destroyAllWindows()
 
 
