@@ -4,6 +4,7 @@ import time
 import cv2
 import numpy as np
 from multiprocessing import Process, Queue
+from queue import Full
 from video_matting.create_model import create_model_for_provider
 from video_matting.rvm import compute_without_border
 
@@ -18,12 +19,21 @@ def compute_frame(frame, size):
     return src
 
 
-def camera_proc(queue, camera, width, height):
+def camera_proc(frame_queue, done_queue, camera, width, height):
     vid = cv2.VideoCapture(camera)
     while(True):
         ok, frame = vid.read()
         if ok:
-            queue.put(compute_frame(frame, (width, height)))
+            try:
+                frame_queue.put(compute_frame(frame, (width, height)), False)
+            except Full:
+                continue
+        if not done_queue.empty():
+            done_queue.get()
+            break
+    vid.release()
+    frame_queue.close()
+    done_queue.close()
 
 
 def camera(
@@ -46,6 +56,7 @@ def camera(
         camera: camera index, default is 0
         width: width of the image, default is 320
         height: height of the image, default is 180
+        show_fps: whether to show fps on camera window, default is False
     """
 
     if os.path.exists(model_path):
@@ -61,8 +72,9 @@ def camera(
     rec = [np.zeros([1, 1, 1, 1], dtype=np.float32)] * 4  # Must match dtype of the model.
     downsample_ratio = np.array([downsample], dtype=np.float32)  # dtype always FP32
 
-    queue = Queue(1)
-    proc = Process(target=camera_proc, args=(queue, camera, width, height))
+    frame_queue = Queue(1)
+    done_queue = Queue(1)
+    proc = Process(target=camera_proc, args=(frame_queue, done_queue, camera, width, height))
     proc.start()
 
     fps = []
@@ -73,7 +85,7 @@ def camera(
         rec = [x.astype('float32') for x in rec]
 
     while(True):
-        batch_inputs = queue.get()
+        batch_inputs = frame_queue.get()
 
         if 'fp16' in model_path:
             batch_inputs = batch_inputs.astype('float16')
@@ -104,9 +116,11 @@ def camera(
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # vid.release()
-    proc.terminate()
     cv2.destroyAllWindows()
+    done_queue.put(True)
+    frame_queue.close()
+    done_queue.close()
+    proc.join()
 
 
 def cmd():
