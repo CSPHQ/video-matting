@@ -1,12 +1,25 @@
 
 import os
+import time
 import cv2
 import numpy as np
+from multiprocessing import Process, Queue
 from video_matting.create_model import create_model_for_provider
 from video_matting.rvm import compute_without_border
 
 
 CURRENT_DIR = os.path.realpath(os.path.dirname(__file__))
+
+
+def camera_proc(queue, done_queue, camera=0):
+    vid = cv2.VideoCapture(camera)
+    while(True):
+        ok, frame = vid.read()
+        if ok:
+            queue.put(frame)
+        if not done_queue.empty():
+            vid.release()
+            break
 
 
 def camera(
@@ -17,6 +30,7 @@ def camera(
     camera=0,
     width=320,
     height=180,
+    show_fps=False
 ):
     """
     Run a camera window to show video matting, useful when you use OBS to live stream.
@@ -36,15 +50,24 @@ def camera(
         model_path = os.path.join(CURRENT_DIR, model_path)
     assert os.path.exists(model_path), 'Model not found'
 
-    vid = cv2.VideoCapture(camera)
+    # vid = cv2.VideoCapture(camera)
 
     sess = create_model_for_provider(model_path, num_threads=num_threads)
     green = np.array(green_color).reshape([1, 1, 3]) / 255.
     rec = [np.zeros([1, 1, 1, 1], dtype=np.float32)] * 4  # Must match dtype of the model.
     downsample_ratio = np.array([downsample], dtype=np.float32)  # dtype always FP32
 
+    queue = Queue(1)
+    done_queue = Queue(1)
+    proc = Process(target=camera_proc, args=(queue, done_queue, camera))
+    proc.start()
+
+    fps = []
+
     while(True):
-        _, frame = vid.read()
+
+        frame = queue.get()
+        
         frame = cv2.resize(frame, (width, height))
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -69,12 +92,21 @@ def camera(
         oi = output_img[0]
 
         oi = cv2.cvtColor(oi, cv2.COLOR_RGB2BGR)
+
+        if show_fps:
+            fps.append(time.time())
+            fps = fps[-100:]
+            if len(fps) >= 2:
+                f = len(fps) / (fps[-1] - fps[0])
+                oi = cv2.putText(oi, f'{f:3.2f}fps', (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+
         cv2.imshow('camera', oi)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    vid.release()
+    # vid.release()
+    done_queue.put(True)
     cv2.destroyAllWindows()
 
 
