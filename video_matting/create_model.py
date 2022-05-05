@@ -4,7 +4,7 @@ from onnxruntime import (
     SessionOptions, get_available_providers
 )
 
-NUM_THREADS = min(4, os.cpu_count())
+NUM_THREADS = min(1, os.cpu_count())
 
 
 def create_model_for_provider(
